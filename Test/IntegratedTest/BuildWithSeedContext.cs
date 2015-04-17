@@ -31,7 +31,8 @@ namespace Test.IntegratedTest
 
         protected override void Seed(BuildWithSeedContext context)
         {
-            List<User> users = Builder<User>.CreateListOfSize(10).All().With(x => x.AddedBy, 1).With(x => x.Id, 0).Build().ToList();
+            List<User> users = Builder<User>.CreateListOfSize(10).All()
+                .With(x => x.AddedBy, 1).With(x => x.Id, 0).Build().ToList();
             foreach (var user in users)
             {
                 context.Users.Add(user);
