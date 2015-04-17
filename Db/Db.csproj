@@ -46,10 +46,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\Shared\DbEntityConfig.cs" />
+    <Compile Include="Configuration\UserConfig.cs" />
+    <Compile Include="IPmsContext.cs" />
+    <Compile Include="PmsContext.cs" />
+    <Compile Include="DbModel\Enum\EntityStatusEnum.cs" />
+    <Compile Include="DbModel\Enum\TableEnum.cs" />
+    <Compile Include="DbModel\Interface\IDbEntity.cs" />
+    <Compile Include="DbModel\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
