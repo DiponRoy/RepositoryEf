@@ -9,14 +9,14 @@ namespace Test.IntegratedTest.RebuildDb
     {
         protected IPmsContext Db { get; set; }
 
-        [Test]
+        [Test, Explicit]
         public void RebuildSchema()
         {
             Db = new BuildContext();
             Assert.DoesNotThrow(LoadDb);
         }
 
-        [Test]
+        [Test, Explicit]
         public void RebuildSchemaWithData()
         {
             Db = new BuildWithSeedContext();

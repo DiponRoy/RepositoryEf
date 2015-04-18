@@ -12,6 +12,7 @@ namespace Data.Repository
     {
         protected IPmsContext DbContext { get; set; }
         protected IDbSet<T> DbSet { get; set; }
+
         public Repository(IPmsContext dbContext)
         {
             if (dbContext == null)
@@ -21,14 +22,19 @@ namespace Data.Repository
             DbContext = dbContext;
             DbSet = DbContext.EntitySet<T>();
         }
-        public T Add(T entity)
+
+        public virtual T Add(T entity)
         {
             if (entity.AddedBy == null)
             {
-                throw new Exception("Credential require.");
+                throw new Exception("AddedBy credential require.");
             }
-
+            if (entity.Status == null)
+            {
+                throw new Exception("Status require.");
+            }
             entity.AddedDateTime = DateTime.UtcNow;
+
             DbEntityEntry dbEntityEntry = DbContext.Entry(entity);
             if (dbEntityEntry.State != EntityState.Detached)
             {
@@ -42,14 +48,18 @@ namespace Data.Repository
             return entity;
         }
 
-        public T Replace(T entity)
+        public virtual T Replace(T entity)
         {
             if (entity.UpdatedBy == null)
             {
-                throw new Exception("Credential require.");
+                throw new Exception("UpdatedBy credential require.");
             }
-
+            if (entity.Status == null)
+            {
+                throw new Exception("Status require.");
+            }
             entity.UpdatedDateTime = DateTime.UtcNow;
+
             DbEntityEntry dbEntityEntry = DbContext.Entry(entity);
             if (dbEntityEntry.State == EntityState.Detached)
             {
@@ -60,10 +70,15 @@ namespace Data.Repository
             return entity;
         }
 
-        public T Remove(T entity)
+        public virtual T Remove(T entity)
         {
             entity.Status = EntityStatusEnum.Removed;
             return Replace(entity);
+        }
+
+        public virtual IQueryable<T> All()
+        {
+            return DbSet;
         }
     }
 }

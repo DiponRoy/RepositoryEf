@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Data.Repository
 {
-    interface IDataRepository<T> : IRepository<T>, IQueryable<T>
+    public interface IDataRepository<T> : IRepository<T>, IQueryable<T>
     {
     }
 }

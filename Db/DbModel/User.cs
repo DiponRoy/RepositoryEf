@@ -13,7 +13,7 @@ namespace Db.DbModel
         public string Email { get; set; }
         public string Password { get; set; }
 
-        public EntityStatusEnum Status { get; set; }
+        public EntityStatusEnum? Status { get; set; }
         public DateTime? AddedDateTime { get; set; }
         public long? AddedBy { get; set; }
         public DateTime? UpdatedDateTime { get; set; }

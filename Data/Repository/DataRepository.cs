@@ -14,7 +14,6 @@ namespace Data.Repository
         public Type ElementType { get; private set; }
         public IQueryProvider Provider { get; private set; }
 
-
         public DataRepository(IPmsContext dbContext) : base(dbContext)
         {
             if (dbContext == null)

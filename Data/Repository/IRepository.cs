@@ -12,5 +12,6 @@ namespace Data.Repository
         T Add(T model);
         T Replace(T model);
         T Remove(T model);
+        IQueryable<T> All();
     }
 }

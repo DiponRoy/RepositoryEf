@@ -57,6 +57,8 @@
   <ItemGroup>
     <Compile Include="IntegratedTest\BuildWithSeedContext.cs" />
     <Compile Include="IntegratedTest\BuildContext.cs" />
+    <Compile Include="IntegratedTest\Data\DataUserRepoTest.cs" />
+    <Compile Include="IntegratedTest\Data\LegacyUserRepoTest.cs" />
     <Compile Include="IntegratedTest\RebuildDb\RebuildRunner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -68,10 +70,6 @@
     <ProjectReference Include="..\Db\Db.csproj">
       <Project>{95de8922-cf3f-435f-a0ff-e65288d52457}</Project>
       <Name>Db</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\logic\logic.csproj">
-      <Project>{803a3d4a-a8d0-4208-95f2-c5b451e889e8}</Project>
-      <Name>logic</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
