@@ -19,7 +19,7 @@ namespace Test.IntegratedTest.Data
         public void SetUp()
         {
             DbContext = new BuildContext();
-            DbContext.Database.Initialize(true);
+            DbContext.Database.Initialize(true);    //important to rebuild db
         }
 
         protected void InitializeUow()

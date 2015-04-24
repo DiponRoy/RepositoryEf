@@ -20,7 +20,7 @@ namespace Data.Repository
                 throw new Exception("dbContext null at Repository<T>");
             }
             DbContext = dbContext;
-            DbSet = DbContext.EntitySet<T>();
+            DbSet = DbContext.Set<T>();
         }
 
         public virtual T Add(T entity)

@@ -11,8 +11,7 @@ namespace Db
 
         Database Database { get; }
         DbContextConfiguration Configuration { get; }
-
-        IDbSet<TEntity> EntitySet<TEntity>() where TEntity : class;
+        IDbSet<TEntity> Set<TEntity>() where TEntity : class;
         DbEntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
         int SaveChanges();
     }

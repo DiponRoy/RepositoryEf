@@ -10,9 +10,9 @@ namespace Db
     {
         public IDbSet<User> Users { get; set; }
 
-        public IDbSet<TEntity> EntitySet<TEntity>() where TEntity : class
+        public new IDbSet<TEntity> Set<TEntity>() where TEntity : class
         {
-            return Set<TEntity>();
+            return base.Set<TEntity>();
         }
 
         protected PmsContext(string nameOrConnectionString) : base(nameOrConnectionString)
