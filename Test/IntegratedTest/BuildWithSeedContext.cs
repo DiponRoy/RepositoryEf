@@ -10,7 +10,7 @@ using NUnit.Framework;
 
 namespace Test.IntegratedTest
 {
-    class BuildWithSeedContext : PmsContext
+    class BuildWithSeedContext : PmsContext, IBuildDbContext
     {
         public BuildWithSeedContext()
             : base(nameOrConnectionString: "DbPms")
@@ -20,6 +20,11 @@ namespace Test.IntegratedTest
         static BuildWithSeedContext()
         {
             Database.SetInitializer(new BuildWithSeedContextInitializer());
+        }
+
+        public void Load()
+        {
+            Users.ToList();
         }
     }
 

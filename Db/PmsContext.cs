@@ -9,6 +9,7 @@ namespace Db
     public class PmsContext : DbContext, IPmsContext
     {
         public IDbSet<User> Users { get; set; }
+
         public IDbSet<TEntity> EntitySet<TEntity>() where TEntity : class
         {
             return Set<TEntity>();
