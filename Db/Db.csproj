@@ -49,11 +49,15 @@
     <Compile Include="Configuration\Shared\DbEntityConfig.cs" />
     <Compile Include="Configuration\UserConfig.cs" />
     <Compile Include="IPmsContext.cs" />
+    <Compile Include="IPmsContextConfiguration.cs" />
+    <Compile Include="IPmsDbEntityEntry.cs" />
     <Compile Include="PmsContext.cs" />
     <Compile Include="DbModel\Enum\EntityStatusEnum.cs" />
     <Compile Include="DbModel\Enum\TableEnum.cs" />
     <Compile Include="DbModel\Interface\IDbEntity.cs" />
     <Compile Include="DbModel\User.cs" />
+    <Compile Include="PmsContextConfiguration.cs" />
+    <Compile Include="PmsDbEntityEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

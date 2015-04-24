@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using Data;
@@ -29,6 +30,9 @@ namespace Test.UnitTest.Data
 
         protected void InitializeUow()
         {
+            DbContext.Setup(x => x.Configuration).Returns(new PmsContextConfiguration());
+            DbContext.Setup(x => x.EntryToAdd(It.IsAny<User>())).Returns(new PmsDbEntityEntry<User>(EntityState.Detached));
+            DbContext.Setup(x => x.EntryToReplace(It.IsAny<User>())).Returns(new PmsDbEntityEntry<User>(EntityState.Detached));
             DbContext.Setup(x => x.Set<User>()).Returns(DbContext.Object.Users); //important to do here;
             Uow = new Uow(DbContext.Object);
         }
@@ -45,96 +49,127 @@ namespace Test.UnitTest.Data
             Assert.AreEqual(3, results.Count());
         }
 
-        //[Test]
-        //public void Add_Insert_One_Item()
-        //{
-        //    var user = new User
-        //    {
-        //        Name = "Admin",
-        //        Email = "Admin@gmail.com",
-        //        Password = "Admin",
-        //        Status = EntityStatusEnum.Active,
-        //        AddedBy = 1,
-        //        AddedDateTime = DateTime.Now
-        //    };
+        [Test]
+        public void Add_Insert_One_Item()
+        {
+            var user = new User
+            {
+                Name = "Admin",
+                Email = "Admin@gmail.com",
+                Password = "Admin",
+                Status = EntityStatusEnum.Active,
+                AddedBy = 1,
+                AddedDateTime = DateTime.Now
+            };
 
-        //    List<User> users = new List<User>();
-        //    DbContext.Setup(x => x.Users).Returns(users.ToDbSet());
-        //    InitializeUow();
-        //    Uow.UserRepo.Add(user);
-        //    Uow.Commit();
+            bool addedItem = false;
+            DbContext.Setup(x => x.Users.Add(It.IsAny<User>())).Callback(() => { addedItem = true; });
+            InitializeUow();
+            Uow.UserRepo.Add(user);
+            Uow.Commit();
 
-        //    Assert.AreEqual(1, users.Count());
-        //}
-
-        //[Test]
-        //public void Remove_Delete_One_Item()
-        //{
-        //    var user = new User
-        //    {
-        //        Name = "Admin",
-        //        Email = "Admin@gmail.com",
-        //        Password = "Admin",
-        //        Status = EntityStatusEnum.Active,
-        //        AddedBy = 1,
-        //        AddedDateTime = DateTime.UtcNow
-        //    };
-        //    DbContext.Users.Add(user);
-        //    DbContext.SaveChanges();
+            Assert.IsTrue(addedItem);
+        }
 
 
-        //    InitializeUow();
-        //    user.UpdatedBy = 1;
-        //    Uow.UserRepo.Remove(user);
-        //    Uow.Commit();
+        [Test]
+        public void Add_Inserted_Item_Fields()
+        {
+            var user = new User
+            {
+                Name = "Admin",
+                Email = "Admin@gmail.com",
+                Password = "Admin",
+                Status = EntityStatusEnum.Active,
+                AddedBy = 1,
+                AddedDateTime = DateTime.Now
+            };
 
-        //    User removedItem = DbContext.Users.Single(x => x.Id == user.Id);
-        //    Assert.AreEqual(1, DbContext.Users.Count());
-        //    Assert.AreEqual(EntityStatusEnum.Removed, removedItem.Status);
-        //}
+            User addedItem = null;
+            DbContext.Setup(x => x.Users.Add(It.IsAny<User>())).Callback((User aUser) => { addedItem = aUser; });
+            InitializeUow();
+            Uow.UserRepo.Add(user);
+            Uow.Commit();
 
-        //[Test]
-        //public void Replace_Update_One_Item()
-        //{
-        //    DbContext.Users.Add(new User
-        //    {
-        //        Name = "Admin",
-        //        Email = "Admin@gmail.com",
-        //        Password = "Admin",
-        //        Status = EntityStatusEnum.Active,
-        //        AddedBy = 1,
-        //        AddedDateTime = DateTime.Now
-        //    });
-        //    DbContext.SaveChanges();
+            Assert.IsNotNull(addedItem);
+            Assert.AreEqual(user.Name, addedItem.Name);
+            Assert.AreEqual(user.Email, addedItem.Email);
+            Assert.AreEqual(user.Password, addedItem.Password);
+            Assert.AreEqual(user.Status, addedItem.Status);
+            Assert.AreEqual(user.AddedBy, addedItem.AddedBy);
+            Assert.AreEqual(user.AddedDateTime, addedItem.AddedDateTime);
+        }
 
-        //    //need to change as
-        //    var user = new User
-        //    {
-        //        Name = "Admin1",
-        //        Email = "Admin@gmail11.com",
-        //        Password = "Admin1",
-        //        Status = EntityStatusEnum.Inactive,
-        //        UpdatedBy = 1
-        //    };
+        [Test]
+        public void Remove_Delete_One_Item()
+        {
+            var user = new User
+            {
+                Id = 1,
+                Name = "Admin",
+                Email = "Admin@gmail.com",
+                Password = "Admin",
+                Status = EntityStatusEnum.Active,
+                AddedBy = 1,
+                AddedDateTime = DateTime.UtcNow
+            };
 
-        //    InitializeUow();
-        //    User item = DbContext.Users.First();
-        //    item.Name = user.Name;
-        //    item.Email = user.Email;
-        //    item.Password = user.Password;
-        //    item.Status = user.Status;
-        //    item.UpdatedBy = user.UpdatedBy;
+            DbContext.Setup(x => x.Users).Returns(new List<User> {user}.ToDbSet());
+            InitializeUow();
 
-        //    Uow.UserRepo.Replace(item);
-        //    Uow.Commit();
+            user.UpdatedBy = 1;
+            Uow.UserRepo.Remove(user);
+            Uow.Commit();
 
-        //    User updatedItem = DbContext.Users.First();
-        //    Assert.AreEqual(user.Name, updatedItem.Name);
-        //    Assert.AreEqual(user.Email, updatedItem.Email);
-        //    Assert.AreEqual(user.Password, updatedItem.Password);
-        //    Assert.AreEqual(user.Status, updatedItem.Status);
-        //    Assert.AreEqual(user.UpdatedBy, updatedItem.UpdatedBy);
-        //}
+            User removedItem = DbContext.Object.Users.Single(x => x.Id == user.Id);
+            Assert.AreEqual(1, DbContext.Object.Users.Count());
+            Assert.AreEqual(EntityStatusEnum.Removed, removedItem.Status);
+        }
+
+        [Test]
+        public void Replace_Update_One_Item()
+        {
+            var oldUser = new User
+            {
+                Id = 1,
+                Name = "Admin",
+                Email = "Admin@gmail.com",
+                Password = "Admin",
+                Status = EntityStatusEnum.Active,
+                AddedBy = 1,
+                AddedDateTime = DateTime.UtcNow
+            };
+            DbContext.Setup(x => x.Users).Returns(new List<User> { oldUser }.ToDbSet());
+
+
+            //need to change as
+            var user = new User
+            {
+                Name = "Admin1",
+                Email = "Admin@gmail11.com",
+                Password = "Admin1",
+                Status = EntityStatusEnum.Inactive,
+                UpdatedBy = 1
+            };
+
+            InitializeUow();
+            User item = DbContext.Object.Users.First();
+            item.Name = user.Name;
+            item.Email = user.Email;
+            item.Password = user.Password;
+            item.Status = user.Status;
+            item.UpdatedBy = user.UpdatedBy;
+
+            Uow.UserRepo.Replace(item);
+            Uow.Commit();
+
+            User updatedItem = DbContext.Object.Users.First();
+            Assert.AreEqual(user.Name, updatedItem.Name);
+            Assert.AreEqual(user.Email, updatedItem.Email);
+            Assert.AreEqual(user.Password, updatedItem.Password);
+            Assert.AreEqual(user.Status, updatedItem.Status);
+            Assert.AreEqual(user.UpdatedBy, updatedItem.UpdatedBy);
+        }
 
         [Test]
         public void Self_Returns_IQueryable()
