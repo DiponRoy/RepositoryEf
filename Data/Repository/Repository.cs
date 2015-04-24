@@ -20,7 +20,7 @@ namespace Data.Repository
                 throw new Exception("dbContext null at Repository<T>");
             }
             DbContext = dbContext;
-            DbSet = DbContext.EntitySet<T>();
+            DbSet = DbContext.Set<T>();
         }
 
         public virtual T Add(T entity)
@@ -35,7 +35,7 @@ namespace Data.Repository
             }
             entity.AddedDateTime = DateTime.UtcNow;
 
-            DbEntityEntry dbEntityEntry = DbContext.Entry(entity);
+            IPmsDbEntityEntry<T> dbEntityEntry = DbContext.EntryToAdd(entity);
             if (dbEntityEntry.State != EntityState.Detached)
             {
                 dbEntityEntry.State = EntityState.Added;
@@ -60,7 +60,7 @@ namespace Data.Repository
             }
             entity.UpdatedDateTime = DateTime.UtcNow;
 
-            DbEntityEntry dbEntityEntry = DbContext.Entry(entity);
+            IPmsDbEntityEntry<T> dbEntityEntry = DbContext.EntryToReplace(entity);
             if (dbEntityEntry.State == EntityState.Detached)
             {
                 DbSet.Attach(entity);

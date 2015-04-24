@@ -4,7 +4,6 @@ using Data;
 using Db;
 using Db.DbModel;
 using Db.DbModel.Enum;
-using FizzWare.NBuilder;
 using NUnit.Framework;
 
 namespace Test.IntegratedTest.Data
@@ -43,7 +42,7 @@ namespace Test.IntegratedTest.Data
             DbContext.SaveChanges();
 
             InitializeUow();
-            var results = Uow.LegacyUserRepo.All();
+            IQueryable<User> results = Uow.LegacyUserRepo.All();
 
             Assert.IsInstanceOf<IQueryable<User>>(results);
             Assert.AreEqual(1, results.Count());
@@ -91,7 +90,7 @@ namespace Test.IntegratedTest.Data
             Uow.LegacyUserRepo.Remove(user);
             Uow.Commit();
 
-            var removedItem = DbContext.Users.Single(x => x.Id == user.Id);
+            User removedItem = DbContext.Users.Single(x => x.Id == user.Id);
             Assert.AreEqual(1, DbContext.Users.Count());
             Assert.AreEqual(EntityStatusEnum.Removed, removedItem.Status);
         }
@@ -121,7 +120,7 @@ namespace Test.IntegratedTest.Data
             };
 
             InitializeUow();
-            var item = DbContext.Users.First();
+            User item = DbContext.Users.First();
             item.Name = user.Name;
             item.Email = user.Email;
             item.Password = user.Password;
@@ -131,7 +130,7 @@ namespace Test.IntegratedTest.Data
             Uow.LegacyUserRepo.Replace(item);
             Uow.Commit();
 
-            var updatedItem = DbContext.Users.First();
+            User updatedItem = DbContext.Users.First();
             Assert.AreEqual(user.Name, updatedItem.Name);
             Assert.AreEqual(user.Email, updatedItem.Email);
             Assert.AreEqual(user.Password, updatedItem.Password);

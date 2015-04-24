@@ -1,52 +1,52 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using Data;
 using Data.Repository;
 using Db;
 using Db.DbModel;
 using Db.DbModel.Enum;
+using FizzWare.NBuilder;
+using Moq;
 using NUnit.Framework;
+using Test.Utility;
 
-namespace Test.IntegratedTest.Data
+namespace Test.UnitTest.Data
 {
     [TestFixture]
-    public class DataUserRepoTest
+    public class DataUserRepoUnitTest
     {
-        protected IPmsContext DbContext { get; set; }
+        protected Mock<IPmsContext> DbContext { get; set; }
         protected IUow Uow { get; set; }
 
         [SetUp]
         public void SetUp()
         {
-            DbContext = new BuildContext();
-            DbContext.Database.Initialize(true);    //important to rebuild db
+            DbContext = new Mock<IPmsContext>();
+            DbContext.Setup(x => x.SaveChanges()).Returns(1);
         }
 
         protected void InitializeUow()
         {
-            Uow = new Uow(DbContext);
+            DbContext.Setup(x => x.Configuration).Returns(new PmsContextConfiguration());
+            DbContext.Setup(x => x.EntryToAdd(It.IsAny<User>())).Returns(new PmsDbEntityEntry<User>(EntityState.Detached));
+            DbContext.Setup(x => x.EntryToReplace(It.IsAny<User>())).Returns(new PmsDbEntityEntry<User>(EntityState.Detached));
+            DbContext.Setup(x => x.Set<User>()).Returns(DbContext.Object.Users); //important to do here;
+            Uow = new Uow(DbContext.Object);
         }
 
         [Test]
         public void All_Returns_Items()
         {
-            var user = new User
-            {
-                Name = "Admin",
-                Email = "Admin@gmail.com",
-                Password = "Admin",
-                Status = EntityStatusEnum.Active,
-                AddedBy = 1,
-                AddedDateTime = DateTime.UtcNow
-            };
-            DbContext.Users.Add(user);
-            DbContext.SaveChanges();
-
+            List<User> users = Builder<User>.CreateListOfSize(3).Build().ToList();
+            DbContext.Setup(x => x.Users).Returns(users.ToDbSet());
             InitializeUow();
-            IQueryable<User> results = Uow.UserRepo.All();
 
+            IQueryable<User> results = Uow.UserRepo.All();
             Assert.IsInstanceOf<IQueryable<User>>(results);
-            Assert.AreEqual(1, results.Count());
+            Assert.AreEqual(3, results.Count());
         }
 
         [Test]
@@ -62,16 +62,18 @@ namespace Test.IntegratedTest.Data
                 AddedDateTime = DateTime.Now
             };
 
+            bool addedItem = false;
+            DbContext.Setup(x => x.Users.Add(It.IsAny<User>())).Callback(() => { addedItem = true; });
             InitializeUow();
             Uow.UserRepo.Add(user);
             Uow.Commit();
 
-            Assert.AreEqual(1, user.Id);
-            Assert.AreEqual(1, DbContext.Users.Count());
+            Assert.IsTrue(addedItem);
         }
 
+
         [Test]
-        public void Remove_Delete_One_Item()
+        public void Add_Inserted_Item_Fields()
         {
             var user = new User
             {
@@ -80,35 +82,65 @@ namespace Test.IntegratedTest.Data
                 Password = "Admin",
                 Status = EntityStatusEnum.Active,
                 AddedBy = 1,
+                AddedDateTime = DateTime.Now
+            };
+
+            User addedItem = null;
+            DbContext.Setup(x => x.Users.Add(It.IsAny<User>())).Callback((User aUser) => { addedItem = aUser; });
+            InitializeUow();
+            Uow.UserRepo.Add(user);
+            Uow.Commit();
+
+            Assert.IsNotNull(addedItem);
+            Assert.AreEqual(user.Name, addedItem.Name);
+            Assert.AreEqual(user.Email, addedItem.Email);
+            Assert.AreEqual(user.Password, addedItem.Password);
+            Assert.AreEqual(user.Status, addedItem.Status);
+            Assert.AreEqual(user.AddedBy, addedItem.AddedBy);
+            Assert.AreEqual(user.AddedDateTime, addedItem.AddedDateTime);
+        }
+
+        [Test]
+        public void Remove_Delete_One_Item()
+        {
+            var user = new User
+            {
+                Id = 1,
+                Name = "Admin",
+                Email = "Admin@gmail.com",
+                Password = "Admin",
+                Status = EntityStatusEnum.Active,
+                AddedBy = 1,
                 AddedDateTime = DateTime.UtcNow
             };
-            DbContext.Users.Add(user);
-            DbContext.SaveChanges();
 
-
+            DbContext.Setup(x => x.Users).Returns(new List<User> {user}.ToDbSet());
             InitializeUow();
+
             user.UpdatedBy = 1;
             Uow.UserRepo.Remove(user);
             Uow.Commit();
 
-            User removedItem = DbContext.Users.Single(x => x.Id == user.Id);
-            Assert.AreEqual(1, DbContext.Users.Count());
+            User removedItem = DbContext.Object.Users.Single(x => x.Id == user.Id);
+            Assert.AreEqual(1, DbContext.Object.Users.Count());
             Assert.AreEqual(EntityStatusEnum.Removed, removedItem.Status);
         }
 
         [Test]
         public void Replace_Update_One_Item()
         {
-            DbContext.Users.Add(new User
+            var oldUser = new User
             {
+                Id = 1,
                 Name = "Admin",
                 Email = "Admin@gmail.com",
                 Password = "Admin",
                 Status = EntityStatusEnum.Active,
                 AddedBy = 1,
-                AddedDateTime = DateTime.Now
-            });
-            DbContext.SaveChanges();
+                AddedDateTime = DateTime.UtcNow
+            };
+            DbContext.Setup(x => x.Users).Returns(new List<User> { oldUser }.ToDbSet());
+
 
             //need to change as
             var user = new User
@@ -121,7 +153,7 @@ namespace Test.IntegratedTest.Data
             };
 
             InitializeUow();
-            User item = DbContext.Users.First();
+            User item = DbContext.Object.Users.First();
             item.Name = user.Name;
             item.Email = user.Email;
             item.Password = user.Password;
@@ -131,7 +163,7 @@ namespace Test.IntegratedTest.Data
             Uow.UserRepo.Replace(item);
             Uow.Commit();
 
-            User updatedItem = DbContext.Users.First();
+            User updatedItem = DbContext.Object.Users.First();
             Assert.AreEqual(user.Name, updatedItem.Name);
             Assert.AreEqual(user.Email, updatedItem.Email);
             Assert.AreEqual(user.Password, updatedItem.Password);
@@ -142,42 +174,23 @@ namespace Test.IntegratedTest.Data
         [Test]
         public void Self_Returns_IQueryable()
         {
-            var user = new User
-            {
-                Name = "Admin",
-                Email = "Admin@gmail.com",
-                Password = "Admin",
-                Status = EntityStatusEnum.Active,
-                AddedBy = 1,
-                AddedDateTime = DateTime.UtcNow
-            };
-            DbContext.Users.Add(user);
-            DbContext.SaveChanges();
-
+            List<User> users = Builder<User>.CreateListOfSize(3).Build().ToList();
+            DbContext.Setup(x => x.Users).Returns(users.ToDbSet());
             InitializeUow();
-            IDataRepository<User> results = Uow.UserRepo;
 
+            IDataRepository<User> results = Uow.UserRepo;
             Assert.IsInstanceOf<IQueryable<User>>(results);
-            Assert.AreEqual(1, results.Count());
+            Assert.AreEqual(3, results.Count());
         }
 
         [Test]
         public void Self_Apply_Single()
         {
-            DbContext.Users.Add(new User
-            {
-                Name = "Admin",
-                Email = "Admin@gmail.com",
-                Password = "Admin",
-                Status = EntityStatusEnum.Active,
-                AddedBy = 1,
-                AddedDateTime = DateTime.UtcNow
-            });
-            DbContext.SaveChanges();
-
+            List<User> users = Builder<User>.CreateListOfSize(3).Build().ToList();
+            DbContext.Setup(x => x.Users).Returns(users.ToDbSet());
             InitializeUow();
-            User result = Uow.UserRepo.First();
 
+            User result = Uow.UserRepo.First();
             Assert.IsNotNull(result);
         }
 
