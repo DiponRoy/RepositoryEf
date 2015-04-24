@@ -7,29 +7,20 @@ namespace Test.IntegratedTest.RebuildDb
     [TestFixture]
     public class RebuildRunner
     {
-        protected IPmsContext Db { get; set; }
+        protected IBuildDbContext Db { get; set; }
 
-        [Test, Explicit]
+        [Test]
         public void RebuildSchema()
         {
             Db = new BuildContext();
-            Assert.DoesNotThrow(LoadDb);
+            Assert.DoesNotThrow(() => Db.Load());
         }
 
-        [Test, Explicit]
+        [Test]
         public void RebuildSchemaWithData()
         {
             Db = new BuildWithSeedContext();
-            Assert.DoesNotThrow(LoadDb);
+            Assert.DoesNotThrow(() => Db.Load());
         }
-
-        private void LoadDb()
-        {
-            using (Db)
-            {
-                Db.Users.ToList();             
-            }
-        }
-
     }
 }

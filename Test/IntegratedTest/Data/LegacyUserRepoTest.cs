@@ -19,6 +19,7 @@ namespace Test.IntegratedTest.Data
         public void SetUp()
         {
             DbContext = new BuildContext();
+            DbContext.Database.Initialize(true);
         }
 
         protected void InitializeUow()
@@ -26,7 +27,7 @@ namespace Test.IntegratedTest.Data
             Uow = new Uow(DbContext);
         }
 
-        [Test, Explicit]
+        [Test]
         public void All_Returns_Items()
         {
             var user = new User
@@ -48,7 +49,7 @@ namespace Test.IntegratedTest.Data
             Assert.AreEqual(1, results.Count());
         }
 
-        [Test, Explicit]
+        [Test]
         public void Add_Insert_One_Item()
         {
             var user = new User
@@ -69,7 +70,7 @@ namespace Test.IntegratedTest.Data
             Assert.AreEqual(1, DbContext.Users.Count());
         }
 
-        [Test, Explicit]
+        [Test]
         public void Remove_Delete_One_Item()
         {
             var user = new User
@@ -95,7 +96,7 @@ namespace Test.IntegratedTest.Data
             Assert.AreEqual(EntityStatusEnum.Removed, removedItem.Status);
         }
 
-        [Test, Explicit]
+        [Test]
         public void Replace_Update_One_Item()
         {
             DbContext.Users.Add(new User

@@ -59,6 +59,7 @@
     <Compile Include="IntegratedTest\BuildContext.cs" />
     <Compile Include="IntegratedTest\Data\DataUserRepoTest.cs" />
     <Compile Include="IntegratedTest\Data\LegacyUserRepoTest.cs" />
+    <Compile Include="IntegratedTest\IBuildDbContext.cs" />
     <Compile Include="IntegratedTest\RebuildDb\RebuildRunner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
