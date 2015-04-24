@@ -18,6 +18,7 @@ namespace Data
             }
 
             DbContext = dbContext;
+            DbContext.Configuration.LazyLoadingEnabled = true;
         }
 
         public int Commit()
